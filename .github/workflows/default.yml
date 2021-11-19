@@ -22,7 +22,7 @@ jobs:
           - alpine314
           - centos7
           - centos8
-          - debian8
+          # - debian8
           - debian9
           - debian10
           - debian11
