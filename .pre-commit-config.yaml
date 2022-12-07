@@ -3,7 +3,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.4.0
     hooks:
       - id: check-added-large-files
       - id: check-executables-have-shebangs
@@ -15,33 +15,33 @@ repos:
         args: [--branch, develop, --branch, master, --branch, main]
       - id: trailing-whitespace
   - repo: https://github.com/ansible-community/ansible-lint
-    rev: v5.2.1
+    rev: v6.9.1
     hooks:
       - id: ansible-lint
   - repo: https://github.com/psf/black
-    rev: 21.10b0
+    rev: 22.10.0
     hooks:
       - id: black
         language_version: python3
   - repo: https://github.com/PyCQA/flake8
-    rev: 4.0.1
+    rev: 6.0.0
     hooks:
       - id: flake8
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.26.3
+    rev: v1.28.0
     hooks:
       - id: yamllint
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.8.0.1
+    rev: v0.8.0.4
     hooks:
       - id: shellcheck
-  - repo: git://github.com/pecigonzalo/pre-commit-shfmt
-    rev: 23bcc6bbfd38358ca99fb1787af2f8202b9dd46a
-    hooks:
-      - id: shell-fmt
-        args:
-          - --indent=4
+  # - repo: git://github.com/pecigonzalo/pre-commit-shfmt
+  #   rev: 23bcc6bbfd38358ca99fb1787af2f8202b9dd46a
+  #   hooks:
+  #     - id: shell-fmt
+  #       args:
+  #         - --indent=4
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.1
+    rev: 1.7.4
     hooks:
       - id: bandit
