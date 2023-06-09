@@ -5,9 +5,10 @@ description = ""
 authors = ["Larry Smith Jr. <mrlesmithjr@gmail.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.9,<4.0"
 ansible = "6.6.0"
-molecule = {extras = ["docker"], version = "^4.0.3"}
+molecule-plugins = {extras = ["vagrant"], version = "^23.4.1"}
+molecule = {extras = ["docker"], version = "^5.0.1"}
 
 [tool.poetry.group.dev.dependencies]
 ansible-lint = "6.8.7"
