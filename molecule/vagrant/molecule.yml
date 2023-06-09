@@ -1,0 +1,28 @@
+---
+dependency:
+  name: galaxy
+  enabled: false
+  options:
+    role-file: requirements.yml
+driver:
+  name: vagrant
+lint: |
+  yamllint .
+  ansible-lint
+  flake8
+platforms:
+  - name: ubuntu2004
+    box: bento/ubuntu-20.04-arm64
+    memory: 2048
+    cpus: 2
+provisioner:
+  name: ansible
+  playbooks:
+    converge: ../shared/converge.yml
+    prepare: ../shared/prepare.yml
+    verify: ../shared/verify.yml
+  config_options:
+    defaults:
+      remote_tmp: /tmp
+verifier:
+  name: ansible
