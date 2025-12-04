@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(molecule:*)",
+      "Bash(pyenv versions:*)",
+      "Bash(python3 -m pip:*)",
+      "Bash(yamllint:*)",
+      "Bash(python3:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

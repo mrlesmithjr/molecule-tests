@@ -1,9 +1,53 @@
 ---
 - name: Prepare hosts for testing
   hosts: all
+  become: true
   tasks:
     - name: Update Apt Cache
       ansible.builtin.apt:
         update_cache: true
-      become: true
+        cache_valid_time: 3600
       when: ansible_os_family == "Debian"
+
+    - name: Update YUM Cache
+      ansible.builtin.yum:
+        update_cache: true
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution_major_version | int < 8
+
+    - name: Update DNF Cache
+      ansible.builtin.dnf:
+        update_cache: true
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_distribution_major_version | int >= 8
+
+    - name: Update APK Cache
+      community.general.apk:
+        update_cache: true
+      when: ansible_os_family == "Alpine"
+
+    - name: Install Python dependencies for Ansible modules
+      ansible.builtin.package:
+        name:
+          - python3
+        state: present
+      when: ansible_os_family != "Alpine"
+
+    - name: Install Python3 on Alpine
+      community.general.apk:
+        name:
+          - python3
+        state: present
+      when: ansible_os_family == "Alpine"
+
+    - name: Ensure systemd is available
+      ansible.builtin.command: systemctl --version
+      register: systemd_check
+      changed_when: false
+      failed_when: false
+
+    - name: Set systemd availability fact
+      ansible.builtin.set_fact:
+        systemd_available: "{{ systemd_check.rc == 0 }}"

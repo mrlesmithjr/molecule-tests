@@ -1,9 +1,110 @@
 ---
-# This is an example playbook to execute Ansible tests.
-
 - name: Verify
   hosts: all
+  become: true
   tasks:
-  - name: Example assertion
-    ansible.builtin.assert:
-      that: true
+    - name: Gather service facts
+      ansible.builtin.service_facts:
+
+    - name: Check that required packages are installed
+      ansible.builtin.package:
+        name:
+          - curl
+          - wget
+          - vim
+        state: present
+      check_mode: true
+      register: package_check
+      failed_when: package_check is changed
+
+    - name: Verify test user exists
+      ansible.builtin.getent:
+        database: passwd
+        key: testuser
+      register: testuser_info
+
+    - name: Assert test user has correct shell
+      ansible.builtin.assert:
+        that:
+          - testuser_info.ansible_facts.getent_passwd.testuser[5] == "/bin/bash"
+        fail_msg: "Test user does not have correct shell"
+        success_msg: "Test user has correct shell configured"
+
+    - name: Check application directory exists
+      ansible.builtin.stat:
+        path: /opt/app
+      register: app_dir
+
+    - name: Assert application directory is configured correctly
+      ansible.builtin.assert:
+        that:
+          - app_dir.stat.exists
+          - app_dir.stat.isdir
+          - app_dir.stat.mode == '0755'
+          - app_dir.stat.pw_name == 'testuser'
+        fail_msg: "Application directory not configured correctly"
+        success_msg: "Application directory configured correctly"
+
+    - name: Check configuration file exists
+      ansible.builtin.stat:
+        path: /opt/app/config.yml
+      register: config_file
+
+    - name: Assert configuration file exists and has correct permissions
+      ansible.builtin.assert:
+        that:
+          - config_file.stat.exists
+          - config_file.stat.mode == '0644'
+          - config_file.stat.pw_name == 'testuser'
+        fail_msg: "Configuration file not properly configured"
+        success_msg: "Configuration file properly configured"
+
+    - name: Verify configuration file content
+      ansible.builtin.slurp:
+        src: /opt/app/config.yml
+      register: config_content
+
+    - name: Assert configuration contains expected values
+      ansible.builtin.assert:
+        that:
+          - "'app_name: molecule-test' in config_content.content | b64decode"
+          - "'environment: testing' in config_content.content | b64decode"
+        fail_msg: "Configuration file does not contain expected content"
+        success_msg: "Configuration file contains expected content"
+
+    - name: Check systemd service file exists
+      ansible.builtin.stat:
+        path: /etc/systemd/system/sample-app.service
+      register: service_file
+      when: ansible_service_mgr == "systemd"
+
+    - name: Assert systemd service file exists
+      ansible.builtin.assert:
+        that:
+          - service_file.stat.exists
+          - service_file.stat.mode == '0644'
+        fail_msg: "Systemd service file not found or has wrong permissions"
+        success_msg: "Systemd service file properly configured"
+      when: ansible_service_mgr == "systemd"
+
+    - name: Verify sample service is running
+      ansible.builtin.assert:
+        that:
+          - "'sample-app.service' in ansible_facts.services"
+          - ansible_facts.services['sample-app.service'].state == 'running'
+          - ansible_facts.services['sample-app.service'].status == 'enabled'
+        fail_msg: "Sample service is not running or enabled"
+        success_msg: "Sample service is running and enabled"
+      when: ansible_service_mgr == "systemd"
+
+    - name: Test curl command is available
+      ansible.builtin.command: which curl
+      changed_when: false
+      register: curl_check
+
+    - name: Assert curl is in PATH
+      ansible.builtin.assert:
+        that:
+          - curl_check.rc == 0
+        fail_msg: "curl command not found in PATH"
+        success_msg: "curl command available in PATH"

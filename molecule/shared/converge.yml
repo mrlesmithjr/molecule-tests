@@ -1,4 +1,67 @@
 ---
 - name: Converge
   hosts: all
-  tasks: []
+  become: true
+  tasks:
+    - name: Install common packages
+      ansible.builtin.package:
+        name:
+          - curl
+          - wget
+          - vim
+        state: present
+
+    - name: Create test user
+      ansible.builtin.user:
+        name: testuser
+        state: present
+        shell: /bin/bash
+        create_home: true
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: /opt/app
+        state: directory
+        mode: '0755'
+        owner: testuser
+        group: testuser
+
+    - name: Deploy sample configuration
+      ansible.builtin.copy:
+        content: |
+          # Sample application configuration
+          app_name: molecule-test
+          environment: testing
+          log_level: debug
+        dest: /opt/app/config.yml
+        mode: '0644'
+        owner: testuser
+        group: testuser
+
+    - name: Create systemd service file
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          Description=Sample Test Service
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=testuser
+          WorkingDirectory=/opt/app
+          ExecStart=/bin/sleep infinity
+          Restart=on-failure
+
+          [Install]
+          WantedBy=multi-user.target
+        dest: /etc/systemd/system/sample-app.service
+        mode: '0644'
+      when: ansible_service_mgr == "systemd"
+
+    - name: Enable and start sample service
+      ansible.builtin.systemd:
+        name: sample-app
+        enabled: true
+        state: started
+        daemon_reload: true
+      when: ansible_service_mgr == "systemd"
